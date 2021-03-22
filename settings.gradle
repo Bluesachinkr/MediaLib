@@ -1,0 +1,3 @@
+include ':MediaCodecLib'
+include ':app'
+rootProject.name = "MediaLib"
