@@ -73,7 +73,8 @@ public class Thumb {
             th.setIndex(i);
             if (i == 0) {
                 int resImageLeft = R.drawable.left_thumb;
-                th.setBitmap(BitmapFactory.decodeResource(resources, resImageLeft));
+                Bitmap bitmap = BitmapFactory.decodeResource(resources,resImageLeft);
+                th.setBitmap(bitmap);
             } else {
                 int resImageRight = R.drawable.right_thumb;
                 th.setBitmap(BitmapFactory.decodeResource(resources, resImageRight));

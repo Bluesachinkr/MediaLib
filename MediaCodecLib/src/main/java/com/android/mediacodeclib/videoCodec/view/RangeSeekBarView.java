@@ -42,11 +42,11 @@ public class RangeSeekBarView extends View {
 
     public RangeSeekBarView(@NonNull Context context, AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
-        init();
+        init(context);
     }
 
-    private void init() {
-        mThumbs = Thumb.initThumbs(getResources());
+    private void init(Context context) {
+        mThumbs = Thumb.initThumbs(context.getResources());
         mThumbWidth = Thumb.getWidthBitmap(mThumbs);
         mThumbHeight = Thumb.getHeightBitmap(mThumbs);
 

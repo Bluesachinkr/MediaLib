@@ -126,7 +126,7 @@ public class TimelineView extends View {
         }
     }
 
-    public void setVideo(@NonNull Uri video) {
+    public void setVideo(Uri video) {
         this.mVideoUri = video;
     }
 }
