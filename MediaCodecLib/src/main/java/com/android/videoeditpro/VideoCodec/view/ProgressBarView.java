@@ -1,4 +1,4 @@
-package com.android.mediacodeclib.videoCodec.view;
+package com.android.videoeditpro.VideoCodec.view;
 
 import android.content.Context;
 import android.graphics.Canvas;
@@ -8,12 +8,11 @@ import android.util.AttributeSet;
 import android.view.View;
 
 import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 import androidx.core.content.ContextCompat;
 
-import com.android.mediacodeclib.R;
-import com.android.mediacodeclib.videoCodec.interfaces.OnProgressVideoListener;
-import com.android.mediacodeclib.videoCodec.interfaces.OnRangeSeekBarListener;
+import com.android.videoeditpro.R;
+import com.android.videoeditpro.VideoCodec.interfaces.OnProgressVideoListener;
+import com.android.videoeditpro.VideoCodec.interfaces.OnRangeSeekBarListener;
 
 public class ProgressBarView extends View implements OnRangeSeekBarListener, OnProgressVideoListener {
 
@@ -114,11 +113,11 @@ public class ProgressBarView extends View implements OnRangeSeekBarListener, OnP
             mBackgroundRect = new Rect(mBackgroundRect.left, mBackgroundRect.top, newValue, mBackgroundRect.bottom);
         }
 
-        updateProgressBar(0, 0, 0.0f);
+        updateProgress(0, 0, 0.0f);
     }
 
     @Override
-    public void updateProgressBar(int time, int max, float scale) {
+    public void updateProgress(int time, int max, float scale) {
 
         if (scale == 0) {
             mProgressRect = new Rect(0, mBackgroundRect.top, 0, mBackgroundRect.bottom);

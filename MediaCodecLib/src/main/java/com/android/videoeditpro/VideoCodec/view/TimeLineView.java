@@ -1,4 +1,4 @@
-package com.android.mediacodeclib.videoCodec.view;
+package com.android.videoeditpro.VideoCodec.view;
 
 import android.content.Context;
 import android.graphics.Bitmap;
@@ -10,49 +10,45 @@ import android.util.LongSparseArray;
 import android.view.View;
 
 import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
+import com.android.videoeditpro.R;
+import com.android.videoeditpro.VideoCodec.utils.BackgroundExecutor;
+import com.android.videoeditpro.VideoCodec.utils.UiThreadExecutor;
 
-import com.android.mediacodeclib.R;
-import com.android.mediacodeclib.videoCodec.utils.BackgroundExecutor;
-import com.android.mediacodeclib.videoCodec.utils.UiThreadExecutor;
-
-public class TimelineView extends View {
+public class TimeLineView extends View {
 
     private Uri mVideoUri;
     private int mHeightView;
-    private LongSparseArray<Bitmap> mFramesList = null;
+    private LongSparseArray<Bitmap> mBitmapList = null;
 
-    public TimelineView(Context context) {
-        super(context);
+    public TimeLineView(@NonNull Context context, AttributeSet attrs) {
+        this(context, attrs, 0);
     }
 
-    public TimelineView(Context context, @Nullable AttributeSet attrs) {
-        super(context, attrs);
-    }
-
-    public TimelineView(Context context, @Nullable AttributeSet attrs, int defStyleAttr) {
+    public TimeLineView(@NonNull Context context, AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
+        init();
     }
 
-    private void initialize() {
+    private void init() {
         mHeightView = getContext().getResources().getDimensionPixelOffset(R.dimen.frames_video_height);
     }
 
     @Override
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
-        final int minWidth = getPaddingLeft() + getPaddingRight() + getSuggestedMinimumWidth();
-        int width = resolveSizeAndState(minWidth, widthMeasureSpec, 1);
+        final int minW = getPaddingLeft() + getPaddingRight() + getSuggestedMinimumWidth();
+        int w = resolveSizeAndState(minW, widthMeasureSpec, 1);
 
-        final int minHeight = getPaddingBottom() + getPaddingTop() + getSuggestedMinimumHeight();
-        int height = resolveSizeAndState(minHeight, heightMeasureSpec, 1);
+        final int minH = getPaddingBottom() + getPaddingTop() + mHeightView;
+        int h = resolveSizeAndState(minH, heightMeasureSpec, 1);
 
-        setMeasuredDimension(width, height);
+        setMeasuredDimension(w, h);
     }
 
     @Override
-    protected void onSizeChanged(int w, int h, int oldw, int oldh) {
-        super.onSizeChanged(w, h, oldw, oldh);
-        if (w != oldw) {
+    protected void onSizeChanged(final int w, int h, final int oldW, int oldH) {
+        super.onSizeChanged(w, h, oldW, oldH);
+
+        if (w != oldW) {
             getBitmap(w);
         }
     }
@@ -78,6 +74,7 @@ public class TimelineView extends View {
 
                                                for (int i = 0; i < numThumbs; ++i) {
                                                    Bitmap bitmap = mediaMetadataRetriever.getFrameAtTime(i * interval, MediaMetadataRetriever.OPTION_CLOSEST_SYNC);
+                                                   // TODO: bitmap might be null here, hence throwing NullPointerException. You were right
                                                    try {
                                                        bitmap = Bitmap.createScaledBitmap(bitmap, thumbWidth, thumbHeight, false);
                                                    } catch (Exception e) {
@@ -100,7 +97,7 @@ public class TimelineView extends View {
         UiThreadExecutor.runTask("", new Runnable() {
                     @Override
                     public void run() {
-                        mFramesList = thumbnailList;
+                        mBitmapList = thumbnailList;
                         invalidate();
                     }
                 }
@@ -111,12 +108,12 @@ public class TimelineView extends View {
     protected void onDraw(@NonNull Canvas canvas) {
         super.onDraw(canvas);
 
-        if (mFramesList != null) {
+        if (mBitmapList != null) {
             canvas.save();
             int x = 0;
 
-            for (int i = 0; i < mFramesList.size(); i++) {
-                Bitmap bitmap = mFramesList.get(i);
+            for (int i = 0; i < mBitmapList.size(); i++) {
+                Bitmap bitmap = mBitmapList.get(i);
 
                 if (bitmap != null) {
                     canvas.drawBitmap(bitmap, x, 0, null);
@@ -126,7 +123,7 @@ public class TimelineView extends View {
         }
     }
 
-    public void setVideo(Uri video) {
-        this.mVideoUri = video;
+    public void setVideo(@NonNull Uri data) {
+        mVideoUri = data;
     }
 }

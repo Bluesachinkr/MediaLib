@@ -6,31 +6,11 @@
     android:layout_height="match_parent"
     tools:context=".MainActivity">
 
-    <FrameLayout
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_above="@id/trimmer"
-        android:padding="8dp">
 
-        <VideoView
-            android:id="@+id/videoView"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent" />
-
-        <ImageView
-            android:id="@+id/playPauseButton"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_above="@id/videoView"
-            android:layout_gravity="center"
-            android:src="@drawable/play_pause_button" />
-
-    </FrameLayout>
-
-    <com.android.mediacodeclib.videoCodec.VideoTrimmer
+    <com.android.videoeditpro.VideoCodec.VideoCutTrimmer
         android:id="@+id/trimmer"
         android:layout_width="match_parent"
-        android:layout_height="100dp"
+        android:layout_height="match_parent"
         android:layout_alignParentBottom="true" />
 
 </RelativeLayout>

@@ -1,4 +1,4 @@
-package com.android.mediacodeclib.videoCodec.view;
+package com.android.videoeditpro.VideoCodec.view;
 
 import android.content.Context;
 import android.graphics.Canvas;
@@ -9,16 +9,16 @@ import android.view.MotionEvent;
 import android.view.View;
 
 import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 import androidx.core.content.ContextCompat;
 
-import com.android.mediacodeclib.R;
-import com.android.mediacodeclib.videoCodec.interfaces.OnRangeSeekBarListener;
+import com.android.videoeditpro.R;
+import com.android.videoeditpro.VideoCodec.interfaces.OnRangeSeekBarListener;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class RangeSeekBarView extends View {
+
     private static final String TAG = RangeSeekBarView.class.getSimpleName();
 
     private int mHeightTimeLine;
@@ -42,11 +42,11 @@ public class RangeSeekBarView extends View {
 
     public RangeSeekBarView(@NonNull Context context, AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
-        init(context);
+        init();
     }
 
-    private void init(Context context) {
-        mThumbs = Thumb.initThumbs(context.getResources());
+    private void init() {
+        mThumbs = Thumb.initThumbs(getResources());
         mThumbWidth = Thumb.getWidthBitmap(mThumbs);
         mThumbHeight = Thumb.getHeightBitmap(mThumbs);
 

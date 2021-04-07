@@ -1,24 +1,18 @@
 package com.android.medialib;
 
-import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
-import android.content.Intent;
-import android.media.MediaMetadataRetriever;
 import android.net.Uri;
 import android.os.Bundle;
-import android.view.View;
-import android.widget.Button;
-import android.widget.ImageView;
-import android.widget.VideoView;
+import android.widget.TextView;
 
-import com.android.mediacodeclib.videoCodec.VideoTrimmer;
-import com.android.mediacodeclib.videoCodec.interfaces.OnTrimVideoListener;
+import com.android.videoeditpro.VideoCodec.VideoCutTrimmer;
+import com.android.videoeditpro.VideoCodec.interfaces.OnTrimVideoListener;
+import com.android.videoeditpro.VideoCodec.interfaces.OnVideoCutListener;
 
-public class MainActivity extends AppCompatActivity implements OnTrimVideoListener {
-    private VideoTrimmer trimmer;
-    private VideoView videoView;
-    private ImageView playpauseButton;
+public class MainActivity extends AppCompatActivity implements OnTrimVideoListener, OnVideoCutListener {
+    private VideoCutTrimmer trimmer;
+    private TextView textView;
     private Uri uri;
 
     @Override
@@ -27,29 +21,15 @@ public class MainActivity extends AppCompatActivity implements OnTrimVideoListen
         setContentView(R.layout.activity_main);
 
         trimmer = findViewById(R.id.trimmer);
-        videoView = findViewById(R.id.videoView);
-        playpauseButton = findViewById(R.id.playPauseButton);
 
-        playpauseButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (videoView.isPlaying()) {
-                    videoView.pause();
-                } else {
-                    videoView.start();
-                }
-            }
-        });
-
-        trimmer.initialize(this);
         uri = SecondActivity.uri;
         if (trimmer != null) {
-            trimmer.setMaxDuration(3600);
+            trimmer.setMaxDuration(20);
             trimmer.setOnTrimVideoListener(this);
-            trimmer.setVideoUri(uri);
+            trimmer.setVideoURI(uri);
+            trimmer.setOnK4LVideoListener(this);
+            trimmer.setVideoInformationVisibility(true);
         }
-
-        videoView.setVideoURI(uri);
     }
 
     @Override
@@ -64,11 +44,17 @@ public class MainActivity extends AppCompatActivity implements OnTrimVideoListen
 
     @Override
     public void cancelAction() {
-
+        trimmer.destroy();
+        finish();
     }
 
     @Override
     public void onError(String message) {
+
+    }
+
+    @Override
+    public void onVideoPrepared() {
 
     }
 }

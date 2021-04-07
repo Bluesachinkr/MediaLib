@@ -1,4 +1,4 @@
-package com.android.mediacodeclib.videoCodec.view;
+package com.android.videoeditpro.VideoCodec.view;
 
 import android.content.res.Resources;
 import android.graphics.Bitmap;
@@ -6,12 +6,13 @@ import android.graphics.BitmapFactory;
 
 import androidx.annotation.NonNull;
 
-import com.android.mediacodeclib.R;
+import com.android.videoeditpro.R;
 
 import java.util.List;
 import java.util.Vector;
 
 public class Thumb {
+
     public static final int LEFT = 0;
     public static final int RIGHT = 1;
 
@@ -72,11 +73,10 @@ public class Thumb {
             Thumb th = new Thumb();
             th.setIndex(i);
             if (i == 0) {
-                int resImageLeft = R.drawable.left_thumb;
-                Bitmap bitmap = BitmapFactory.decodeResource(resources,resImageLeft);
-                th.setBitmap(bitmap);
+                int resImageLeft = R.drawable.apptheme_text_select_handle_left;
+                th.setBitmap(BitmapFactory.decodeResource(resources, resImageLeft));
             } else {
-                int resImageRight = R.drawable.right_thumb;
+                int resImageRight = R.drawable.apptheme_text_select_handle_right;
                 th.setBitmap(BitmapFactory.decodeResource(resources, resImageRight));
             }
 
