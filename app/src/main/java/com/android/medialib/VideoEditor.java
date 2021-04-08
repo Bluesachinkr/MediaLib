@@ -9,7 +9,7 @@ import com.android.videoeditpro.VideoCodec.VideoCutTrimmer;
 import com.android.videoeditpro.VideoCodec.interfaces.OnTrimVideoListener;
 import com.android.videoeditpro.VideoCodec.interfaces.OnVideoCutListener;
 
-public class MainActivity extends AppCompatActivity implements OnTrimVideoListener, OnVideoCutListener {
+public class VideoEditor extends AppCompatActivity implements OnTrimVideoListener, OnVideoCutListener {
     private VideoCutTrimmer trimmer;
     private Uri uri;
 
@@ -20,7 +20,7 @@ public class MainActivity extends AppCompatActivity implements OnTrimVideoListen
 
         trimmer = findViewById(R.id.trimmer);
 
-        uri = SecondActivity.uri;
+        uri = HomeActivity.uri;
         if (trimmer != null) {
             trimmer.setMaxDuration(20);
             trimmer.setOnTrimVideoListener(this);
