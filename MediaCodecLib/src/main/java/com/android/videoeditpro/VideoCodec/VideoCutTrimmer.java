@@ -489,7 +489,7 @@ public class VideoCutTrimmer extends FrameLayout {
     }
 
 
-    public void setOnK4LVideoListener(OnVideoCutListener onVideoCutListener) {
+    public void setOnVideoCutListener(OnVideoCutListener onVideoCutListener) {
         mOnVideoCutListener = onVideoCutListener;
     }
 

@@ -4,7 +4,6 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import android.net.Uri;
 import android.os.Bundle;
-import android.widget.TextView;
 
 import com.android.videoeditpro.VideoCodec.VideoCutTrimmer;
 import com.android.videoeditpro.VideoCodec.interfaces.OnTrimVideoListener;
@@ -12,7 +11,6 @@ import com.android.videoeditpro.VideoCodec.interfaces.OnVideoCutListener;
 
 public class MainActivity extends AppCompatActivity implements OnTrimVideoListener, OnVideoCutListener {
     private VideoCutTrimmer trimmer;
-    private TextView textView;
     private Uri uri;
 
     @Override
@@ -27,7 +25,7 @@ public class MainActivity extends AppCompatActivity implements OnTrimVideoListen
             trimmer.setMaxDuration(20);
             trimmer.setOnTrimVideoListener(this);
             trimmer.setVideoURI(uri);
-            trimmer.setOnK4LVideoListener(this);
+            trimmer.setOnVideoCutListener(this);
             trimmer.setVideoInformationVisibility(true);
         }
     }
