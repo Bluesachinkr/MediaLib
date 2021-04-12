@@ -1,4 +1,4 @@
-package com.android.videoeditpro.VideoCodec.utils;
+package com.android.mediacodeclib.VideoCodec.utils;
 
 import android.util.Log;
 
@@ -27,7 +27,6 @@ public final class BackgroundExecutor {
     private static Future<?> directExecute(Runnable runnable, long delay) {
         Future<?> future = null;
         if (delay > 0) {
-            /* no serial, but a delay: schedule the task */
             if (!(executor instanceof ScheduledExecutorService)) {
                 throw new IllegalArgumentException("The executor set does not support scheduling");
             }
@@ -38,7 +37,6 @@ public final class BackgroundExecutor {
                 ExecutorService executorService = (ExecutorService) executor;
                 future = executorService.submit(runnable);
             } else {
-                /* non-cancellable task */
                 executor.execute(runnable);
             }
         }

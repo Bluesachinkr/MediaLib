@@ -1,4 +1,4 @@
-package com.android.videoeditpro.VideoCodec.view;
+package com.android.mediacodeclib.VideoCodec.view;
 
 import android.content.Context;
 import android.graphics.Canvas;
@@ -11,8 +11,8 @@ import androidx.annotation.NonNull;
 import androidx.core.content.ContextCompat;
 
 import com.android.videoeditpro.R;
-import com.android.videoeditpro.VideoCodec.interfaces.OnProgressVideoListener;
-import com.android.videoeditpro.VideoCodec.interfaces.OnRangeSeekBarListener;
+import com.android.mediacodeclib.VideoCodec.interfaces.OnProgressVideoListener;
+import com.android.mediacodeclib.VideoCodec.interfaces.OnRangeSeekBarListener;
 
 public class ProgressBarView extends View implements OnRangeSeekBarListener, OnProgressVideoListener {
 

@@ -1,11 +1,11 @@
-package com.android.videoeditpro.VideoCodec.utils;
+package com.android.mediacodeclib.VideoCodec.utils;
 
 import android.net.Uri;
 import android.util.Log;
 
 import androidx.annotation.NonNull;
 
-import com.android.videoeditpro.VideoCodec.interfaces.OnTrimVideoListener;
+import com.android.mediacodeclib.VideoCodec.interfaces.OnTrimVideoListener;
 import com.coremedia.iso.boxes.Container;
 import com.googlecode.mp4parser.FileDataSourceViaHeapImpl;
 import com.googlecode.mp4parser.authoring.Movie;

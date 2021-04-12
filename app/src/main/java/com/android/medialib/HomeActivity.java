@@ -9,8 +9,12 @@ import android.os.Bundle;
 import android.view.View;
 import android.widget.ImageView;
 
+import com.android.mediacodeclib.VideoCodec.VideoCutTrimmer;
+
 public class HomeActivity extends AppCompatActivity implements View.OnClickListener {
 
+    private int VIDEO_REQUEST_CODE = 201;
+    private int AUDIO_REQUEST_CODE = 202;
     private ImageView videoEditor;
     private ImageView audioEditor;
     private ImageView videoCompressor;
@@ -42,7 +46,8 @@ public class HomeActivity extends AppCompatActivity implements View.OnClickListe
                 break;
             }
             case R.id.audioEditor: {
-
+                getAudio();
+                break;
             }
             case R.id.videoCompressor: {
 
@@ -58,21 +63,32 @@ public class HomeActivity extends AppCompatActivity implements View.OnClickListe
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
-        if (resultCode == RESULT_OK) {
-            if (requestCode == 210) {
-                Intent intent = new Intent(this, VideoEditor.class);
-                uri = data.getData();
-                startActivity(intent);
-            }
+        if (resultCode == RESULT_OK && requestCode == VIDEO_REQUEST_CODE) {
+            Intent intent = new Intent(this, VideoEditor.class);
+            Uri uri = data.getData();
+            intent.putExtra("KEY", uri.getPath());
+            startActivity(intent);
+        } else if (resultCode == RESULT_OK && requestCode == AUDIO_REQUEST_CODE) {
+            Intent intent = new Intent(this, AudioEditor.class);
+            Uri uri = data.getData();
+            intent.putExtra("KEY", uri.getPath());
+            startActivity(intent);
         } else {
             super.onActivityResult(requestCode, resultCode, data);
         }
+    }
+
+    private void getAudio() {
+        Intent intent = new Intent();
+        intent.setType("audio/*");
+        intent.setAction(Intent.ACTION_GET_CONTENT);
+        startActivityForResult(Intent.createChooser(intent, "Select Audio"), AUDIO_REQUEST_CODE);
     }
 
     private void getVideo() {
         Intent intent = new Intent();
         intent.setType("video/*");
         intent.setAction(Intent.ACTION_GET_CONTENT);
-        startActivityForResult(Intent.createChooser(intent, "Select Video"), 210);
+        startActivityForResult(Intent.createChooser(intent, "Select Video"), VIDEO_REQUEST_CODE);
     }
 }

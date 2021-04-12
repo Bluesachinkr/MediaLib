@@ -1,4 +1,4 @@
-package com.android.videoeditpro.VideoCodec.utils;
+package com.android.mediacodeclib.VideoCodec.utils;
 
 import android.annotation.SuppressLint;
 import android.content.ContentUris;

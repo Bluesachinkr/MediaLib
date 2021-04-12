@@ -1,6 +1,6 @@
-package com.android.videoeditpro.VideoCodec.interfaces;
+package com.android.mediacodeclib.VideoCodec.interfaces;
 
-import com.android.videoeditpro.VideoCodec.view.RangeSeekBarView;
+import com.android.mediacodeclib.VideoCodec.view.RangeSeekBarView;
 
 public interface OnRangeSeekBarListener {
     void onCreate(RangeSeekBarView rangeSeekBarView, int index, float value);

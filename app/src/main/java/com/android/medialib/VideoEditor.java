@@ -5,9 +5,9 @@ import androidx.appcompat.app.AppCompatActivity;
 import android.net.Uri;
 import android.os.Bundle;
 
-import com.android.videoeditpro.VideoCodec.VideoCutTrimmer;
-import com.android.videoeditpro.VideoCodec.interfaces.OnTrimVideoListener;
-import com.android.videoeditpro.VideoCodec.interfaces.OnVideoCutListener;
+import com.android.mediacodeclib.VideoCodec.VideoCutTrimmer;
+import com.android.mediacodeclib.VideoCodec.interfaces.OnTrimVideoListener;
+import com.android.mediacodeclib.VideoCodec.interfaces.OnVideoCutListener;
 
 public class VideoEditor extends AppCompatActivity implements OnTrimVideoListener, OnVideoCutListener {
     private VideoCutTrimmer trimmer;
@@ -18,6 +18,11 @@ public class VideoEditor extends AppCompatActivity implements OnTrimVideoListene
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        Bundle extras = getIntent().getExtras();
+        if (extras != null && extras.containsKey("KEY")) {
+            String data = extras.getString("KEY");
+            uri = Uri.parse(data);
+        }
         trimmer = findViewById(R.id.trimmer);
 
         uri = HomeActivity.uri;

@@ -1,4 +1,4 @@
-package com.android.videoeditpro.VideoCodec.view;
+package com.android.mediacodeclib.VideoCodec.view;
 
 import android.content.Context;
 import android.graphics.Bitmap;
@@ -10,9 +10,10 @@ import android.util.LongSparseArray;
 import android.view.View;
 
 import androidx.annotation.NonNull;
+
 import com.android.videoeditpro.R;
-import com.android.videoeditpro.VideoCodec.utils.BackgroundExecutor;
-import com.android.videoeditpro.VideoCodec.utils.UiThreadExecutor;
+import com.android.mediacodeclib.VideoCodec.utils.BackgroundExecutor;
+import com.android.mediacodeclib.VideoCodec.utils.UiThreadExecutor;
 
 public class TimeLineView extends View {
 

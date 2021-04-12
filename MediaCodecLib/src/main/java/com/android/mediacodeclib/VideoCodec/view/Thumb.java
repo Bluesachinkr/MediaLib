@@ -1,4 +1,4 @@
-package com.android.videoeditpro.VideoCodec.view;
+package com.android.mediacodeclib.VideoCodec.view;
 
 import android.content.res.Resources;
 import android.graphics.Bitmap;

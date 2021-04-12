@@ -1,7 +1,6 @@
-package com.android.videoeditpro.VideoCodec;
+package com.android.mediacodeclib.AudioCodec;
 
 import android.content.Context;
-import android.media.MediaMetadataRetriever;
 import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Environment;
@@ -9,59 +8,59 @@ import android.os.Handler;
 import android.os.Message;
 import android.util.AttributeSet;
 import android.util.Log;
-import android.view.GestureDetector;
 import android.view.LayoutInflater;
-import android.view.MotionEvent;
 import android.view.View;
-import android.view.ViewGroup;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.SeekBar;
 import android.widget.TextView;
-import android.widget.VideoView;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
+import com.android.mediacodeclib.AudioCodec.utils.TrimAudio;
+import com.android.mediacodeclib.AudioCodec.view.AudioTimelineView;
+import com.android.mediacodeclib.VideoCodec.interfaces.OnProgressVideoListener;
+import com.android.mediacodeclib.VideoCodec.interfaces.OnRangeSeekBarListener;
+import com.android.mediacodeclib.VideoCodec.interfaces.OnTrimVideoListener;
+import com.android.mediacodeclib.VideoCodec.interfaces.OnVideoCutListener;
+import com.android.mediacodeclib.VideoCodec.utils.BackgroundExecutor;
+import com.android.mediacodeclib.VideoCodec.utils.UiThreadExecutor;
+import com.android.mediacodeclib.VideoCodec.view.ProgressBarView;
+import com.android.mediacodeclib.VideoCodec.view.RangeSeekBarView;
+import com.android.mediacodeclib.VideoCodec.view.Thumb;
 import com.android.videoeditpro.R;
-import com.android.videoeditpro.VideoCodec.interfaces.OnVideoCutListener;
-import com.android.videoeditpro.VideoCodec.interfaces.OnProgressVideoListener;
-import com.android.videoeditpro.VideoCodec.interfaces.OnRangeSeekBarListener;
-import com.android.videoeditpro.VideoCodec.interfaces.OnTrimVideoListener;
-import com.android.videoeditpro.VideoCodec.utils.BackgroundExecutor;
-import com.android.videoeditpro.VideoCodec.utils.TrimVideoUtils;
-import com.android.videoeditpro.VideoCodec.utils.UiThreadExecutor;
-import com.android.videoeditpro.VideoCodec.view.ProgressBarView;
-import com.android.videoeditpro.VideoCodec.view.RangeSeekBarView;
-import com.android.videoeditpro.VideoCodec.view.Thumb;
-import com.android.videoeditpro.VideoCodec.view.TimeLineView;
 
+import java.io.BufferedInputStream;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.lang.ref.WeakReference;
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.android.videoeditpro.VideoCodec.utils.TrimVideoUtils.stringForTime;
+import static com.android.mediacodeclib.VideoCodec.utils.TrimVideoUtils.stringForTime;
 
+public class AudioCutTrimmer extends FrameLayout {
 
-public class VideoCutTrimmer extends FrameLayout {
-
-    private static final String TAG = VideoCutTrimmer.class.getSimpleName();
-    private static final int MIN_TIME_FRAME = 1000;
     private static final int SHOW_PROGRESS = 2;
+    private static final String TAG = AudioCutTrimmer.class.getName();
 
     private SeekBar mHolderTopView;
     private RangeSeekBarView mRangeSeekBarView;
-    private RelativeLayout mLinearVideo;
     private View mTimeInfoContainer;
-    private VideoView mVideoView;
     private ImageView mPlayView;
     private TextView mTextSize;
     private TextView mTextTimeFrame;
     private TextView mTextTime;
-    private TimeLineView mTimeLineView;
+    private AudioTimelineView mTimeLineView;
 
     private ProgressBarView mVideoProgressIndicator;
+    private MediaPlayer mediaPlayer;
     private Uri mSrc;
     private String mFinalPath;
 
@@ -72,7 +71,8 @@ public class VideoCutTrimmer extends FrameLayout {
     private OnVideoCutListener mOnVideoCutListener;
 
     private int mDuration = 0;
-    private int mTimeVideo = 0;
+    private int mTimeAudio = 0;
+    private Context context;
     private int mStartPosition = 0;
     private int mEndPosition = 0;
 
@@ -80,30 +80,29 @@ public class VideoCutTrimmer extends FrameLayout {
     private boolean mResetSeekBar = true;
     private final MessageHandler mMessageHandler = new MessageHandler(this);
 
-    public VideoCutTrimmer(@NonNull Context context, AttributeSet attrs) {
-        this(context, attrs, 0);
+    public AudioCutTrimmer(@NonNull Context context, @Nullable AttributeSet attrs) {
+        super(context, attrs);
     }
 
-    public VideoCutTrimmer(@NonNull Context context, AttributeSet attrs, int defStyleAttr) {
+    public AudioCutTrimmer(@NonNull Context context, @Nullable AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
         init(context);
     }
 
-    private void init(Context context) {
-        LayoutInflater.from(context).inflate(R.layout.view_time_line, this, true);
+    public void init(Context context) {
+        this.context = context;
+        LayoutInflater.from(context).inflate(R.layout.audio_trim, this, true);
 
-        mHolderTopView = ((SeekBar) findViewById(R.id.handlerTop));
-        mVideoProgressIndicator = ((ProgressBarView) findViewById(R.id.timeVideoView));
-        mRangeSeekBarView = ((RangeSeekBarView) findViewById(R.id.timeLineBar));
-        mLinearVideo = ((RelativeLayout) findViewById(R.id.layout_surface_view));
-        mVideoView = ((VideoView) findViewById(R.id.video_loader));
-        mPlayView = ((ImageView) findViewById(R.id.icon_video_play));
-        mTimeInfoContainer = findViewById(R.id.timeText);
-        mTextSize = ((TextView) findViewById(R.id.textSize));
-        mTextTimeFrame = ((TextView) findViewById(R.id.textTimeSelection));
-        mTextTime = ((TextView) findViewById(R.id.textTime));
-        mTimeLineView = ((TimeLineView) findViewById(R.id.timeLineView));
-
+        mHolderTopView = ((SeekBar) findViewById(R.id.handlerTopAudio));
+        mVideoProgressIndicator = ((ProgressBarView) findViewById(R.id.timeAudioView));
+        mRangeSeekBarView = ((RangeSeekBarView) findViewById(R.id.timeLineBarAudio));
+        mPlayView = ((ImageView) findViewById(R.id.icon_audio_play));
+        mTimeInfoContainer = findViewById(R.id.timeTextAudio);
+        mTextSize = ((TextView) findViewById(R.id.textSizeAudio));
+        mTextTimeFrame = ((TextView) findViewById(R.id.textTimeSelectionAudio));
+        mTextTime = ((TextView) findViewById(R.id.textTimeAudio));
+        mTimeLineView = ((AudioTimelineView) findViewById(R.id.audioTimeline));
+        mediaPlayer = new MediaPlayer();
         setUpListeners();
         setUpMargins();
     }
@@ -117,10 +116,9 @@ public class VideoCutTrimmer extends FrameLayout {
             }
         });
         mListeners.add(mVideoProgressIndicator);
-
-        findViewById(R.id.btCancel)
+        findViewById(R.id.btCancelAudio)
                 .setOnClickListener(
-                        new OnClickListener() {
+                        new View.OnClickListener() {
                             @Override
                             public void onClick(View view) {
                                 onCancelClicked();
@@ -128,9 +126,9 @@ public class VideoCutTrimmer extends FrameLayout {
                         }
                 );
 
-        findViewById(R.id.btSave)
+        findViewById(R.id.btSaveAudio)
                 .setOnClickListener(
-                        new OnClickListener() {
+                        new View.OnClickListener() {
                             @Override
                             public void onClick(View view) {
                                 onSaveClicked();
@@ -138,38 +136,17 @@ public class VideoCutTrimmer extends FrameLayout {
                         }
                 );
 
-        final GestureDetector gestureDetector = new
-                GestureDetector(getContext(),
-                new GestureDetector.SimpleOnGestureListener() {
-                    @Override
-                    public boolean onSingleTapConfirmed(MotionEvent e) {
-                        onClickVideoPlayPause();
-                        return true;
-                    }
-                }
-        );
+        mPlayView.setOnClickListener(new View.OnClickListener() {
 
-        mVideoView.setOnErrorListener(new MediaPlayer.OnErrorListener() {
             @Override
-            public boolean onError(MediaPlayer mediaPlayer, int what, int extra) {
-                if (mOnTrimVideoListener != null)
-                    mOnTrimVideoListener.onError("Something went wrong reason : " + what);
-                return false;
-            }
-        });
-
-        mVideoView.setOnTouchListener(new View.OnTouchListener() {
-            @Override
-            public boolean onTouch(View v, @NonNull MotionEvent event) {
-                gestureDetector.onTouchEvent(event);
-                return true;
+            public void onClick(View v) {
+                onClickVideoPlayPause();
             }
         });
 
         mRangeSeekBarView.addOnRangeSeekBarListener(new OnRangeSeekBarListener() {
             @Override
             public void onCreate(RangeSeekBarView rangeSeekBarView, int index, float value) {
-                // Do nothing
             }
 
             @Override
@@ -179,7 +156,6 @@ public class VideoCutTrimmer extends FrameLayout {
 
             @Override
             public void onSeekStart(RangeSeekBarView rangeSeekBarView, int index, float value) {
-                // Do nothing
             }
 
             @Override
@@ -206,14 +182,14 @@ public class VideoCutTrimmer extends FrameLayout {
             }
         });
 
-        mVideoView.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
+        mediaPlayer.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
             @Override
             public void onPrepared(MediaPlayer mp) {
                 onVideoPrepared(mp);
             }
         });
 
-        mVideoView.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
+        mediaPlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
             @Override
             public void onCompletion(MediaPlayer mp) {
                 onVideoCompleted();
@@ -238,30 +214,25 @@ public class VideoCutTrimmer extends FrameLayout {
         mVideoProgressIndicator.setLayoutParams(lp);
     }
 
+    private void seekTo(int position) {
+        if (mediaPlayer.isPlaying()) {
+            mediaPlayer.pause();
+        }
+        mediaPlayer.seekTo(position);
+    }
+
     private void onSaveClicked() {
         if (mStartPosition <= 0 && mEndPosition >= mDuration) {
             if (mOnTrimVideoListener != null)
                 mOnTrimVideoListener.getResult(mSrc);
         } else {
             mPlayView.setVisibility(View.VISIBLE);
-            mVideoView.pause();
-
-            MediaMetadataRetriever mediaMetadataRetriever = new MediaMetadataRetriever();
-            mediaMetadataRetriever.setDataSource(getContext(), mSrc);
-            long METADATA_KEY_DURATION = Long.parseLong(mediaMetadataRetriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION));
+            if (mediaPlayer.isPlaying()) {
+                mediaPlayer.pause();
+            }
 
             final File file = new File(mSrc.getPath());
 
-            if (mTimeVideo < MIN_TIME_FRAME) {
-
-                if ((METADATA_KEY_DURATION - mEndPosition) > (MIN_TIME_FRAME - mTimeVideo)) {
-                    mEndPosition += (MIN_TIME_FRAME - mTimeVideo);
-                } else if (mStartPosition > (MIN_TIME_FRAME - mTimeVideo)) {
-                    mStartPosition -= (MIN_TIME_FRAME - mTimeVideo);
-                }
-            }
-
-            //notify that video trimming started
             if (mOnTrimVideoListener != null)
                 mOnTrimVideoListener.onTrimStarted();
 
@@ -270,9 +241,23 @@ public class VideoCutTrimmer extends FrameLayout {
                         @Override
                         public void execute() {
                             try {
-                                TrimVideoUtils.startTrim(file, getDestinationPath(), mStartPosition, mEndPosition, mOnTrimVideoListener);
-                            } catch (final Throwable e) {
-                                Thread.getDefaultUncaughtExceptionHandler().uncaughtException(Thread.currentThread(), e);
+                                String directory = context.getExternalFilesDir(null).getAbsolutePath();
+                                directory += "/AudioTrimmer";
+                                File d = new File(directory);
+                                if (!d.exists()) {
+                                    d.mkdirs();
+                                }
+                                File outputFile = new File(d.getAbsolutePath() + "/trimmedAudio" + ".mp3");
+                                if (outputFile.exists()) {
+                                    outputFile.delete();
+                                }
+                                outputFile.createNewFile();
+                                TrimAudio trimmer = new TrimAudio();
+                                /*trimmer.ReadFile(file);
+                                trimmer.WriteFile(outputFile, mStartPosition, mEndPosition);*/
+
+                            } catch (Exception e) {
+                                e.printStackTrace();
                             }
                         }
                     }
@@ -281,25 +266,25 @@ public class VideoCutTrimmer extends FrameLayout {
     }
 
     private void onClickVideoPlayPause() {
-        if (mVideoView.isPlaying()) {
-            mPlayView.setVisibility(View.VISIBLE);
+        if (mediaPlayer.isPlaying()) {
+            mPlayView.setImageResource(R.drawable.play_button);
             mMessageHandler.removeMessages(SHOW_PROGRESS);
-            mVideoView.pause();
+            mediaPlayer.pause();
         } else {
-            mPlayView.setVisibility(View.GONE);
+            mPlayView.setImageResource(R.drawable.pause_btn);
 
             if (mResetSeekBar) {
                 mResetSeekBar = false;
-                mVideoView.seekTo(mStartPosition);
+                seekTo(mStartPosition);
             }
 
             mMessageHandler.sendEmptyMessage(SHOW_PROGRESS);
-            mVideoView.start();
+            mediaPlayer.start();
         }
     }
 
     private void onCancelClicked() {
-        mVideoView.stopPlayback();
+        mediaPlayer.stop();
         if (mOnTrimVideoListener != null) {
             mOnTrimVideoListener.cancelAction();
         }
@@ -332,45 +317,28 @@ public class VideoCutTrimmer extends FrameLayout {
 
     private void onPlayerIndicatorSeekStart() {
         mMessageHandler.removeMessages(SHOW_PROGRESS);
-        mVideoView.pause();
+        if (mediaPlayer.isPlaying()) {
+            mediaPlayer.pause();
+        }
         mPlayView.setVisibility(View.VISIBLE);
         notifyProgressUpdate(false);
     }
 
     private void onPlayerIndicatorSeekStop(@NonNull SeekBar seekBar) {
         mMessageHandler.removeMessages(SHOW_PROGRESS);
-        mVideoView.pause();
+        if (mediaPlayer.isPlaying()) {
+            mediaPlayer.pause();
+        }
         mPlayView.setVisibility(View.VISIBLE);
 
         int duration = (int) ((mDuration * seekBar.getProgress()) / 1000L);
-        mVideoView.seekTo(duration);
+        seekTo(duration);
         setTimeVideo(duration);
         notifyProgressUpdate(false);
     }
 
     private void onVideoPrepared(@NonNull MediaPlayer mp) {
-        // Adjust the size of the video
-        // so it fits on the screen
-        int videoWidth = mp.getVideoWidth();
-        int videoHeight = mp.getVideoHeight();
-        float videoProportion = (float) videoWidth / (float) videoHeight;
-        int screenWidth = mLinearVideo.getWidth();
-        int screenHeight = mLinearVideo.getHeight();
-        float screenProportion = (float) screenWidth / (float) screenHeight;
-        ViewGroup.LayoutParams lp = mVideoView.getLayoutParams();
-
-        if (videoProportion > screenProportion) {
-            lp.width = screenWidth;
-            lp.height = (int) ((float) screenWidth / videoProportion);
-        } else {
-            lp.width = (int) (videoProportion * (float) screenHeight);
-            lp.height = screenHeight;
-        }
-        mVideoView.setLayoutParams(lp);
-
-        mPlayView.setVisibility(View.VISIBLE);
-
-        mDuration = mVideoView.getDuration();
+        mDuration = mediaPlayer.getDuration();
         setSeekBarPosition();
 
         setTimeFrames();
@@ -383,22 +351,13 @@ public class VideoCutTrimmer extends FrameLayout {
 
     private void setSeekBarPosition() {
 
-        if (mDuration >= mMaxDuration) {
-            mStartPosition = mDuration / 2 - mMaxDuration / 2;
-            mEndPosition = mDuration / 2 + mMaxDuration / 2;
-
-            mRangeSeekBarView.setThumbValue(0, (mStartPosition * 100) / mDuration);
-            mRangeSeekBarView.setThumbValue(1, (mEndPosition * 100) / mDuration);
-
-        } else {
-            mStartPosition = 0;
-            mEndPosition = mDuration;
-        }
+        mStartPosition = 0;
+        mEndPosition = mDuration;
 
         setProgressBarPosition(mStartPosition);
-        mVideoView.seekTo(mStartPosition);
+        seekTo(mStartPosition);
 
-        mTimeVideo = mDuration;
+        mTimeAudio = mDuration;
         mRangeSeekBarView.initMaxWidth();
     }
 
@@ -416,7 +375,7 @@ public class VideoCutTrimmer extends FrameLayout {
         switch (index) {
             case Thumb.LEFT: {
                 mStartPosition = (int) ((mDuration * value) / 100L);
-                mVideoView.seekTo(mStartPosition);
+                seekTo(mStartPosition);
                 break;
             }
             case Thumb.RIGHT: {
@@ -427,23 +386,25 @@ public class VideoCutTrimmer extends FrameLayout {
         setProgressBarPosition(mStartPosition);
 
         setTimeFrames();
-        mTimeVideo = mEndPosition - mStartPosition;
+        mTimeAudio = mEndPosition - mStartPosition;
     }
 
     private void onStopSeekThumbs() {
         mMessageHandler.removeMessages(SHOW_PROGRESS);
-        mVideoView.pause();
+        if (mediaPlayer.isPlaying()) {
+            mediaPlayer.pause();
+        }
         mPlayView.setVisibility(View.VISIBLE);
     }
 
     private void onVideoCompleted() {
-        mVideoView.seekTo(mStartPosition);
+        seekTo(mStartPosition);
     }
 
     private void notifyProgressUpdate(boolean all) {
         if (mDuration == 0) return;
 
-        int position = mVideoView.getCurrentPosition();
+        int position = mediaPlayer.getCurrentPosition();
         if (all) {
             for (OnProgressVideoListener item : mListeners) {
                 item.updateProgress(position, mDuration, ((position * 100) / mDuration));
@@ -454,13 +415,15 @@ public class VideoCutTrimmer extends FrameLayout {
     }
 
     private void updateVideoProgress(int time) {
-        if (mVideoView == null) {
+        if (mediaPlayer == null) {
             return;
         }
 
         if (time >= mEndPosition) {
             mMessageHandler.removeMessages(SHOW_PROGRESS);
-            mVideoView.pause();
+            if (mediaPlayer.isPlaying()) {
+                mediaPlayer.pause();
+            }
             mPlayView.setVisibility(View.VISIBLE);
             mResetSeekBar = true;
             return;
@@ -479,7 +442,7 @@ public class VideoCutTrimmer extends FrameLayout {
         }
     }
 
-    public void setVideoInformationVisibility(boolean visible) {
+    public void setAudioInformationVisibility(boolean visible) {
         mTimeInfoContainer.setVisibility(visible ? VISIBLE : GONE);
     }
 
@@ -507,7 +470,7 @@ public class VideoCutTrimmer extends FrameLayout {
         mMaxDuration = maxDuration * 1000;
     }
 
-    public void setVideoURI(final Uri videoURI) {
+    public void setAudioURI(final Uri videoURI) {
         mSrc = videoURI;
 
         if (mOriginSizeFile == 0) {
@@ -518,36 +481,58 @@ public class VideoCutTrimmer extends FrameLayout {
 
             if (fileSizeInKB > 1000) {
                 long fileSizeInMB = fileSizeInKB / 1024;
-                mTextSize.setText(String.format("%s %s", fileSizeInMB, getContext().getString(R.string.megabyte)));
+                mTextSize.setText(fileSizeInMB + "MB");
             } else {
-                mTextSize.setText(String.format("%s %s", fileSizeInKB, getContext().getString(R.string.kilobyte)));
+                mTextSize.setText(fileSizeInKB + "KB");
             }
+            try {
+                mediaPlayer.setDataSource(mSrc.getPath());
+                mediaPlayer.prepare();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            setTimeline(file);
         }
+    }
 
-        mVideoView.setVideoURI(mSrc);
-        mVideoView.requestFocus();
+    private void setTimeline(File file) {
+        byte[] audioBytes = fileToBytes(file);
+        mTimeLineView.updateVisualizer(audioBytes);
+    }
 
-        mTimeLineView.setVideo(mSrc);
+    public static byte[] fileToBytes(File file) {
+        int size = (int) file.length();
+        byte[] bytes = new byte[size];
+        try {
+            BufferedInputStream buf = new BufferedInputStream(new FileInputStream(file));
+            buf.read(bytes, 0, bytes.length);
+            buf.close();
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return bytes;
     }
 
     private static class MessageHandler extends Handler {
 
         @NonNull
-        private final WeakReference<VideoCutTrimmer> mView;
+        private final WeakReference<AudioCutTrimmer> mView;
 
-        MessageHandler(VideoCutTrimmer view) {
+        MessageHandler(AudioCutTrimmer view) {
             mView = new WeakReference<>(view);
         }
 
         @Override
         public void handleMessage(Message msg) {
-            VideoCutTrimmer view = mView.get();
-            if (view == null || view.mVideoView == null) {
+            AudioCutTrimmer view = mView.get();
+            if (view == null || view.mediaPlayer == null) {
                 return;
             }
 
             view.notifyProgressUpdate(true);
-            if (view.mVideoView.isPlaying()) {
+            if (view.mediaPlayer.isPlaying()) {
                 sendEmptyMessageDelayed(0, 10);
             }
         }

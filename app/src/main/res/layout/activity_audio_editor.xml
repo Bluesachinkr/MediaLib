@@ -4,13 +4,11 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".VideoEditor">
+    tools:context=".AudioEditor">
 
-
-    <com.android.mediacodeclib.VideoCodec.VideoCutTrimmer
-        android:id="@+id/trimmer"
+    <com.android.mediacodeclib.AudioCodec.AudioCutTrimmer
+        android:id="@+id/audioEditorTrimmer"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_alignParentBottom="true" />
+        android:layout_height="match_parent" />
 
 </RelativeLayout>

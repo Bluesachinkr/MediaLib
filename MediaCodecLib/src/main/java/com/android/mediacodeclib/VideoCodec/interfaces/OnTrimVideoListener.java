@@ -1,4 +1,4 @@
-package com.android.videoeditpro.VideoCodec.interfaces;
+package com.android.mediacodeclib.VideoCodec.interfaces;
 
 import android.net.Uri;
 
