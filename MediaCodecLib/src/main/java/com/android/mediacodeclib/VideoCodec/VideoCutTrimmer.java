@@ -89,7 +89,7 @@ public class VideoCutTrimmer extends FrameLayout {
         init(context);
     }
 
-    private void init(Context context) {
+    public void init(Context context) {
         LayoutInflater.from(context).inflate(R.layout.view_time_line, this, true);
 
         mHolderTopView = ((SeekBar) findViewById(R.id.handlerTop));
