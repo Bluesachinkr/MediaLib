@@ -25,27 +25,10 @@ public class TrimAudio {
     private ShortBuffer mDecodedSamples;
     private int mNumSamples;
     private float mAvgBitRate;
-    private int mNumFrames;
-    private int[] mFrameGains;
-    private int[] mFrameLens;
-    private int[] mFrameOffsets;
-    private ProgressListener mProgressListener = null;
 
-    private void setProgressListener(ProgressListener progressListener) {
-        mProgressListener = progressListener;
-    }
-
-    public interface ProgressListener {
-        boolean reportProgress(double fractionComplete);
-    }
-
-    public void ReadFile(File inputFile)
-            throws java.io.FileNotFoundException,
-            IOException {
+    public void ReadFile(File inputFile) throws Exception {
         MediaExtractor extractor = new MediaExtractor();
         MediaFormat format = null;
-        int i;
-
         mInputFile = inputFile;
         String[] components = mInputFile.getPath().split("\\.");
         mFileType = components[components.length - 1];
@@ -53,7 +36,7 @@ public class TrimAudio {
         extractor.setDataSource(mInputFile.getPath());
         int numTracks = extractor.getTrackCount();
 
-        for (i = 0; i < numTracks; i++) {
+        for (int i = 0; i < numTracks; i++) {
             format = extractor.getTrackFormat(i);
             if (format.getString(MediaFormat.KEY_MIME).startsWith("audio/")) {
                 extractor.selectTrack(i);
@@ -81,7 +64,7 @@ public class TrimAudio {
 
         mDecodedBytes = ByteBuffer.allocate(1 << 20);
         Boolean firstSampleData = true;
-        /*while (true) {
+        while (true) {
             int inputBufferIndex = codec.dequeueInputBuffer(100);
             if (!done_reading && inputBufferIndex >= 0) {
                 sample_size = extractor.readSampleData(inputBuffers[inputBufferIndex], 0);
@@ -99,16 +82,6 @@ public class TrimAudio {
                     codec.queueInputBuffer(inputBufferIndex, 0, sample_size, presentation_time, 0);
                     extractor.advance();
                     tot_size_read += sample_size;
-                    if (mProgressListener != null) {
-                        if (!mProgressListener.reportProgress((float) (tot_size_read) / mFileSize)) {
-                            extractor.release();
-                            extractor = null;
-                            codec.stop();
-                            codec.release();
-                            codec = null;
-                            return;
-                        }
-                    }
                 }
                 firstSampleData = false;
             }
@@ -155,7 +128,7 @@ public class TrimAudio {
                     || (mDecodedBytes.position() / (2 * mChannels)) >= expectedNumSamples) {
                 break;
             }
-        }*/
+        }
         mNumSamples = mDecodedBytes.position() / (mChannels * 2);  // One sample = 2 bytes.
         mDecodedBytes.rewind();
         mDecodedBytes.order(ByteOrder.LITTLE_ENDIAN);
@@ -163,46 +136,12 @@ public class TrimAudio {
         mAvgBitRate = (int) ((mFileSize * 8) * ((float) mSampleRate / mNumSamples) / 1000);
 
         extractor.release();
-        extractor = null;
         codec.stop();
         codec.release();
-        codec = null;
-
-        // Temporary hack to make it work with the old version.
-        mNumFrames = mNumSamples / 1024;
-        if (mNumSamples % 1024 != 0) {
-            mNumFrames++;
-        }
-        mFrameGains = new int[mNumFrames];
-        mFrameLens = new int[mNumFrames];
-        mFrameOffsets = new int[mNumFrames];
-        int j;
-        int gain, value;
-        int frameLens = (int) ((1000 * mAvgBitRate / 8) *
-                ((float) 1024 / mSampleRate));
-        for (i = 0; i < mNumFrames; i++) {
-            gain = -1;
-            for (j = 0; j < 1024; j++) {
-                value = 0;
-                for (int k = 0; k < mChannels; k++) {
-                    if (mDecodedSamples.remaining() > 0) {
-                        value += Math.abs(mDecodedSamples.get());
-                    }
-                }
-                value /= mChannels;
-                if (gain < value) {
-                    gain = value;
-                }
-            }
-            mFrameGains[i] = (int) Math.sqrt(gain);
-            mFrameLens[i] = frameLens;
-            mFrameOffsets[i] = (int) (i * (1000 * mAvgBitRate / 8) *
-                    ((float) 1024 / mSampleRate));
-        }
         mDecodedSamples.rewind();
     }
 
-    public void WriteFile(File outputFile, float startTime, float endTime)
+    public void WriteFile(File outputFile, float startTime, float endTime, int mDuration)
             throws IOException {
         int startOffset = (int) (startTime * mSampleRate) * 2 * mChannels;
         int numSamples = (int) ((endTime - startTime) * mSampleRate);
@@ -298,13 +237,8 @@ public class TrimAudio {
                 encodedBytes.put(encodedSamples, 0, info.size);
             } else if (outputBufferIndex == MediaCodec.INFO_OUTPUT_BUFFERS_CHANGED) {
                 outputBuffers = codec.getOutputBuffers();
-            } else if (outputBufferIndex == MediaCodec.INFO_OUTPUT_FORMAT_CHANGED) {
-                // Subsequent data will conform to new format.
-                // We could check that codec.getOutputFormat(), which is the new output format,
-                // is what we expect.
             }
             if ((info.flags & MediaCodec.BUFFER_FLAG_END_OF_STREAM) != 0) {
-                // We got all the encoded data from the encoder.
                 break;
             }
         }
@@ -312,9 +246,7 @@ public class TrimAudio {
         encodedBytes.rewind();
         codec.stop();
         codec.release();
-        codec = null;
 
-        // Write the encoded stream to the file, 4kB at a time.
         buffer = new byte[4096];
         try {
             FileOutputStream outputStream = new FileOutputStream(outputFile);
@@ -331,8 +263,7 @@ public class TrimAudio {
             }
             outputStream.close();
         } catch (IOException e) {
-            Log.e("Ringdroid", "Failed to create the .m4a file.");
+            e.printStackTrace();
         }
     }
-
 }
