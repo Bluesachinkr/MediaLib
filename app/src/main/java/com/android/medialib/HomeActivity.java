@@ -65,8 +65,7 @@ public class HomeActivity extends AppCompatActivity implements View.OnClickListe
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         if (resultCode == RESULT_OK && requestCode == VIDEO_REQUEST_CODE) {
             Intent intent = new Intent(this, VideoEditor.class);
-            Uri uri = data.getData();
-            intent.putExtra("KEY", uri.getPath());
+            uri = data.getData();
             startActivity(intent);
         } else if (resultCode == RESULT_OK && requestCode == AUDIO_REQUEST_CODE) {
             Intent intent = new Intent(this, AudioEditor.class);

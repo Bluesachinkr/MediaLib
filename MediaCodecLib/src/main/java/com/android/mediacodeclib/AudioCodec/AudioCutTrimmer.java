@@ -72,12 +72,14 @@ public class AudioCutTrimmer extends FrameLayout {
 
     private int mDuration = 0;
     private int mTimeAudio = 0;
+    private boolean mLoadingKeepGoing;
     private Context context;
     private int mStartPosition = 0;
     private int mEndPosition = 0;
 
     private long mOriginSizeFile;
     private boolean mResetSeekBar = true;
+    TrimAudio trimmer = new TrimAudio();
     private final MessageHandler mMessageHandler = new MessageHandler(this);
 
     public AudioCutTrimmer(@NonNull Context context, @Nullable AttributeSet attrs) {
@@ -231,8 +233,6 @@ public class AudioCutTrimmer extends FrameLayout {
                 mediaPlayer.pause();
             }
 
-            final File file = new File(mSrc.getPath());
-
             if (mOnTrimVideoListener != null)
                 mOnTrimVideoListener.onTrimStarted();
 
@@ -252,9 +252,11 @@ public class AudioCutTrimmer extends FrameLayout {
                                     outputFile.delete();
                                 }
                                 outputFile.createNewFile();
-                                TrimAudio trimmer = new TrimAudio();
-                                /*trimmer.ReadFile(file);
-                                trimmer.WriteFile(outputFile, mStartPosition, mEndPosition);*/
+                                trimmer.WriteFile(outputFile, mStartPosition / 1000, mEndPosition / 1000, mDuration);
+                                MediaPlayer m = new MediaPlayer();
+                                m.setDataSource(outputFile.getAbsolutePath());
+                                m.prepare();
+                                m.start();
 
                             } catch (Exception e) {
                                 e.printStackTrace();
@@ -264,6 +266,7 @@ public class AudioCutTrimmer extends FrameLayout {
             );
         }
     }
+
 
     private void onClickVideoPlayPause() {
         if (mediaPlayer.isPlaying()) {
@@ -351,8 +354,17 @@ public class AudioCutTrimmer extends FrameLayout {
 
     private void setSeekBarPosition() {
 
-        mStartPosition = 0;
-        mEndPosition = mDuration;
+        if (mDuration >= mMaxDuration) {
+            mStartPosition = mDuration / 2 - mMaxDuration / 2;
+            mEndPosition = mDuration / 2 + mMaxDuration / 2;
+
+            mRangeSeekBarView.setThumbValue(0, (mStartPosition * 100) / mDuration);
+            mRangeSeekBarView.setThumbValue(1, (mEndPosition * 100) / mDuration);
+
+        } else {
+            mStartPosition = 0;
+            mEndPosition = mDuration;
+        }
 
         setProgressBarPosition(mStartPosition);
         seekTo(mStartPosition);
@@ -486,9 +498,10 @@ public class AudioCutTrimmer extends FrameLayout {
                 mTextSize.setText(fileSizeInKB + "KB");
             }
             try {
+                trimmer.ReadFile(file);
                 mediaPlayer.setDataSource(mSrc.getPath());
                 mediaPlayer.prepare();
-            } catch (IOException e) {
+            } catch (Exception e) {
                 e.printStackTrace();
             }
             setTimeline(file);

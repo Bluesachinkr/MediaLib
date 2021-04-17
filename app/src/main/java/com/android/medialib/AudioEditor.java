@@ -48,7 +48,7 @@ public class AudioEditor extends AppCompatActivity implements OnTrimVideoListene
         trimmer.init(this);
         trimmer.setAudioURI(uri);
         trimmer.setAudioInformationVisibility(true);
-        trimmer.setMaxDuration(120);
+        trimmer.setMaxDuration(30);
         trimmer.setOnTrimVideoListener(this);
         trimmer.setOnVideoCutListener(this);
     }
