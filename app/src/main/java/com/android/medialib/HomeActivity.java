@@ -42,7 +42,8 @@ public class HomeActivity extends AppCompatActivity implements View.OnClickListe
     public void onClick(View v) {
         switch (v.getId()) {
             case R.id.videoEditor: {
-                getVideo();
+                Intent intent = getVideo();
+                startActivityForResult(Intent.createChooser(intent, "Select Video"), VIDEO_REQUEST_CODE);
                 break;
             }
             case R.id.audioEditor: {
@@ -50,6 +51,9 @@ public class HomeActivity extends AppCompatActivity implements View.OnClickListe
                 break;
             }
             case R.id.videoCompressor: {
+                Intent intent = getVideo();
+                startActivityForResult(Intent.createChooser(intent, "Select Video"), 300);
+                break;
 
             }
             case R.id.audioCompressor: {
@@ -72,6 +76,11 @@ public class HomeActivity extends AppCompatActivity implements View.OnClickListe
             Uri uri = data.getData();
             intent.putExtra("KEY", uri.getPath());
             startActivity(intent);
+        } else if (resultCode == RESULT_OK && requestCode == 300) {
+            Intent intent = new Intent(this, CompressorActivity.class);
+            Uri uri = data.getData();
+            intent.putExtra("KEY", uri.toString());
+            startActivity(intent);
         } else {
             super.onActivityResult(requestCode, resultCode, data);
         }
@@ -84,10 +93,10 @@ public class HomeActivity extends AppCompatActivity implements View.OnClickListe
         startActivityForResult(Intent.createChooser(intent, "Select Audio"), AUDIO_REQUEST_CODE);
     }
 
-    private void getVideo() {
+    private Intent getVideo() {
         Intent intent = new Intent();
         intent.setType("video/*");
         intent.setAction(Intent.ACTION_GET_CONTENT);
-        startActivityForResult(Intent.createChooser(intent, "Select Video"), VIDEO_REQUEST_CODE);
+        return intent;
     }
 }
