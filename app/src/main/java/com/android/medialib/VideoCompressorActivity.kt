@@ -28,7 +28,7 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
 import java.io.*
 
-class CompressorActivity : AppCompatActivity() {
+class VideoCompressorActivity : AppCompatActivity() {
     companion object {
         const val REQUEST_SELECT_VIDEO = 0
         const val REQUEST_CAPTURE_VIDEO = 1

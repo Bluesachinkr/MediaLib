@@ -13,8 +13,11 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.MediaLib">
+        <activity android:name=".AudioCompressorActivity"></activity>
+        <activity android:name=".VideoResultActivity" />
+        <activity android:name=".VideoMergerActivity" />
         <activity android:name=".AudioEditor" />
-        <activity android:name=".CompressorActivity"/>
+        <activity android:name=".VideoCompressorActivity" />
         <activity android:name=".HomeActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -23,6 +26,7 @@
             </intent-filter>
         </activity>
         <activity android:name=".VideoEditor" />
+        <activity android:name=".AudioMerger" />
     </application>
 
 </manifest>

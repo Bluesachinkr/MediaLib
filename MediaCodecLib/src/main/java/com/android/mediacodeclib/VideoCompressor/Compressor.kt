@@ -24,34 +24,34 @@ object Compressor {
     private const val MEDIACODEC_TIMEOUT_DEFAULT = 100L
 
     private const val INVALID_BITRATE =
-        "The provided bitrate is smaller than what is needed for compression " +
-                "try to set isMinBitRateEnabled to false"
+            "The provided bitrate is smaller than what is needed for compression " +
+                    "try to set isMinBitRateEnabled to false"
 
     var isRunning = true
 
     @Suppress("DEPRECATION")
     fun compressVideo(
-        context: Context?,
-        srcUri: Uri?,
-        srcPath: String?,
-        destination: String,
-        quality: VideoQuality,
-        isMinBitRateEnabled: Boolean,
-        keepOriginalResolution: Boolean,
-        listener: CompressionProgressListener,
+            context: Context?,
+            srcUri: Uri?,
+            srcPath: String?,
+            destination: String,
+            quality: VideoQuality,
+            isMinBitRateEnabled: Boolean,
+            keepOriginalResolution: Boolean,
+            listener: CompressionProgressListener,
     ): Result {
 
         if (context == null && srcPath == null && srcUri == null) {
             return Result(
-                success = false,
-                failureMessage = "You need to provide either a srcUri or a srcPath"
+                    success = false,
+                    failureMessage = "You need to provide either a srcUri or a srcPath"
             )
         }
 
         if (context == null && srcPath == null && srcUri != null) {
             return Result(
-                success = false,
-                failureMessage = "You need to provide the application context"
+                    success = false,
+                    failureMessage = "You need to provide the application context"
             )
         }
 
@@ -63,25 +63,25 @@ object Compressor {
             mediaMetadataRetriever.setDataSource(source)
         } catch (exception: IllegalArgumentException) {
             return Result(
-                success = false,
-                failureMessage = "Source path: $source can be invalid! or you don't have READ_EXTERNAL_STORAGE permission"
+                    success = false,
+                    failureMessage = "Source path: $source can be invalid! or you don't have READ_EXTERNAL_STORAGE permission"
             )
         }
 
         val heightData =
-            mediaMetadataRetriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_HEIGHT)
+                mediaMetadataRetriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_HEIGHT)
 
         val widthData =
-            mediaMetadataRetriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_WIDTH)
+                mediaMetadataRetriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_WIDTH)
 
         val rotationData =
-            mediaMetadataRetriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_ROTATION)
+                mediaMetadataRetriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_ROTATION)
 
         val bitrateData =
-            mediaMetadataRetriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_BITRATE)
+                mediaMetadataRetriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_BITRATE)
 
         val durationData =
-            mediaMetadataRetriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION)
+                mediaMetadataRetriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION)
 
         val height: Double
         val width: Double
@@ -98,8 +98,8 @@ object Compressor {
         if (rotationData.isNullOrEmpty() || bitrateData.isNullOrEmpty() || durationData.isNullOrEmpty()) {
             // Exit execution
             return Result(
-                success = false,
-                failureMessage = "Failed to extract video meta-data, please try again"
+                    success = false,
+                    failureMessage = "Failed to extract video meta-data, please try again"
             )
         }
 
@@ -117,9 +117,9 @@ object Compressor {
 
         //Handle new width and height values
         var (newWidth, newHeight) = generateWidthAndHeight(
-            width,
-            height,
-            keepOriginalResolution
+                width,
+                height,
+                keepOriginalResolution
         )
 
         //Handle rotation values and swapping height and width if needed
@@ -136,8 +136,8 @@ object Compressor {
 
         val file = File(source)
         if (!file.canRead()) return Result(
-            success = false,
-            failureMessage = "The source file cannot be accessed!"
+                success = false,
+                failureMessage = "The source file cannot be accessed!"
         )
 
         var noExceptions = true
@@ -167,12 +167,12 @@ object Compressor {
                 val inputFormat = extractor.getTrackFormat(videoIndex)
 
                 val outputFormat: MediaFormat =
-                    MediaFormat.createVideoFormat(MIME_TYPE, newWidth, newHeight)
+                        MediaFormat.createVideoFormat(MIME_TYPE, newWidth, newHeight)
                 //set output format
                 setOutputFileParameters(
-                    inputFormat,
-                    outputFormat,
-                    newBitrate,
+                        inputFormat,
+                        outputFormat,
+                        newBitrate,
                 )
 
                 var decoder: MediaCodec? = null
@@ -211,8 +211,8 @@ object Compressor {
                     var videoTrackIndex = -5
 
                     encoder.configure(
-                        outputFormat, null, null,
-                        MediaCodec.CONFIGURE_FLAG_ENCODE
+                            outputFormat, null, null,
+                            MediaCodec.CONFIGURE_FLAG_ENCODE
                     )
                     inputSurface = InputSurface(encoder.createInputSurface())
                     inputSurface.makeCurrent()
@@ -236,28 +236,28 @@ object Compressor {
 
                             if (index == videoIndex) {
                                 val inputBufferIndex =
-                                    decoder.dequeueInputBuffer(MEDIACODEC_TIMEOUT_DEFAULT)
+                                        decoder.dequeueInputBuffer(MEDIACODEC_TIMEOUT_DEFAULT)
                                 if (inputBufferIndex >= 0) {
                                     val inputBuffer = decoder.getInputBuffer(inputBufferIndex)
                                     val chunkSize = extractor.readSampleData(inputBuffer!!, 0)
                                     when {
                                         chunkSize < 0 -> {
                                             decoder.queueInputBuffer(
-                                                inputBufferIndex,
-                                                0,
-                                                0,
-                                                0L,
-                                                MediaCodec.BUFFER_FLAG_END_OF_STREAM
+                                                    inputBufferIndex,
+                                                    0,
+                                                    0,
+                                                    0L,
+                                                    MediaCodec.BUFFER_FLAG_END_OF_STREAM
                                             )
                                             inputDone = true
                                         }
                                         else -> {
                                             decoder.queueInputBuffer(
-                                                inputBufferIndex,
-                                                0,
-                                                chunkSize,
-                                                extractor.sampleTime,
-                                                0
+                                                    inputBufferIndex,
+                                                    0,
+                                                    chunkSize,
+                                                    extractor.sampleTime,
+                                                    0
                                             )
                                             extractor.advance()
                                         }
@@ -266,14 +266,14 @@ object Compressor {
 
                             } else if (index == -1) { //end of file
                                 val inputBufferIndex =
-                                    decoder.dequeueInputBuffer(MEDIACODEC_TIMEOUT_DEFAULT)
+                                        decoder.dequeueInputBuffer(MEDIACODEC_TIMEOUT_DEFAULT)
                                 if (inputBufferIndex >= 0) {
                                     decoder.queueInputBuffer(
-                                        inputBufferIndex,
-                                        0,
-                                        0,
-                                        0L,
-                                        MediaCodec.BUFFER_FLAG_END_OF_STREAM
+                                            inputBufferIndex,
+                                            0,
+                                            0,
+                                            0L,
+                                            MediaCodec.BUFFER_FLAG_END_OF_STREAM
                                     )
                                     inputDone = true
                                 }
@@ -289,18 +289,18 @@ object Compressor {
                             if (!isRunning) {
                                 listener.onProgressCancelled()
                                 return Result(
-                                    success = false,
-                                    failureMessage = "The compression has been stopped!"
+                                        success = false,
+                                        failureMessage = "The compression has been stopped!"
                                 )
                             }
 
                             //Encoder
                             val encoderStatus =
-                                encoder.dequeueOutputBuffer(bufferInfo, MEDIACODEC_TIMEOUT_DEFAULT)
+                                    encoder.dequeueOutputBuffer(bufferInfo, MEDIACODEC_TIMEOUT_DEFAULT)
 
                             when {
                                 encoderStatus == MediaCodec.INFO_TRY_AGAIN_LATER -> encoderOutputAvailable =
-                                    false
+                                        false
                                 encoderStatus == MediaCodec.INFO_OUTPUT_FORMAT_CHANGED -> {
                                     val newFormat = encoder.outputFormat
                                     if (videoTrackIndex == -5)
@@ -312,13 +312,13 @@ object Compressor {
                                 encoderStatus < 0 -> throw RuntimeException("unexpected result from encoder.dequeueOutputBuffer: $encoderStatus")
                                 else -> {
                                     val encodedData = encoder.getOutputBuffer(encoderStatus)
-                                        ?: throw RuntimeException("encoderOutputBuffer $encoderStatus was null")
+                                            ?: throw RuntimeException("encoderOutputBuffer $encoderStatus was null")
 
                                     if (bufferInfo.size > 1) {
                                         if ((bufferInfo.flags and MediaCodec.BUFFER_FLAG_CODEC_CONFIG) == 0) {
                                             mediaMuxer.writeSampleData(
-                                                videoTrackIndex,
-                                                encodedData, bufferInfo, false
+                                                    videoTrackIndex,
+                                                    encodedData, bufferInfo, false
                                             )
 
                                         } else if (videoTrackIndex == -5) {
@@ -335,14 +335,14 @@ object Compressor {
                                                     if (csd[a].toInt() == 1 && csd[a - 1].toInt() == 0 && csd[a - 2].toInt() == 0 && csd[a - 3].toInt() == 0) {
                                                         sps = ByteBuffer.allocate(a - 3)
                                                         pps =
-                                                            ByteBuffer.allocate(bufferInfo.size - (a - 3))
+                                                                ByteBuffer.allocate(bufferInfo.size - (a - 3))
                                                         sps!!.put(csd, 0, a - 3).position(0)
                                                         pps!!.put(
-                                                            csd,
-                                                            a - 3,
-                                                            bufferInfo.size - (a - 3)
+                                                                csd,
+                                                                a - 3,
+                                                                bufferInfo.size - (a - 3)
                                                         )
-                                                            .position(0)
+                                                                .position(0)
                                                         break
                                                     }
                                                 } else {
@@ -351,21 +351,21 @@ object Compressor {
                                             }
 
                                             val newFormat = MediaFormat.createVideoFormat(
-                                                MIME_TYPE,
-                                                newWidth,
-                                                newHeight
+                                                    MIME_TYPE,
+                                                    newWidth,
+                                                    newHeight
                                             )
                                             if (sps != null && pps != null) {
                                                 newFormat.setByteBuffer("csd-0", sps)
                                                 newFormat.setByteBuffer("csd-1", pps)
                                             }
                                             videoTrackIndex =
-                                                mediaMuxer.addTrack(newFormat, false)
+                                                    mediaMuxer.addTrack(newFormat, false)
                                         }
                                     }
 
                                     outputDone =
-                                        bufferInfo.flags and MediaCodec.BUFFER_FLAG_END_OF_STREAM != 0
+                                            bufferInfo.flags and MediaCodec.BUFFER_FLAG_END_OF_STREAM != 0
                                     encoder.releaseOutputBuffer(encoderStatus, false)
                                 }
                             }
@@ -374,10 +374,10 @@ object Compressor {
 
                             //Decoder
                             val decoderStatus =
-                                decoder.dequeueOutputBuffer(bufferInfo, MEDIACODEC_TIMEOUT_DEFAULT)
+                                    decoder.dequeueOutputBuffer(bufferInfo, MEDIACODEC_TIMEOUT_DEFAULT)
                             when {
                                 decoderStatus == MediaCodec.INFO_TRY_AGAIN_LATER -> decoderOutputAvailable =
-                                    false
+                                        false
                                 decoderStatus == MediaCodec.INFO_OUTPUT_BUFFERS_CHANGED -> {
                                     // ignore this status
                                 }
@@ -396,8 +396,9 @@ object Compressor {
                                         } catch (e: Exception) {
                                             errorWait = true
                                             Log.e(
-                                                "Compressor",
-                                                e.message ?: "Compression failed at swapping buffer"
+                                                    "Compressor",
+                                                    e.message
+                                                            ?: "Compression failed at swapping buffer"
                                             )
                                         }
 
@@ -437,9 +438,9 @@ object Compressor {
 
                     if (noExceptions) {
                         processAudio(
-                            extractor = extractor,
-                            mediaMuxer = mediaMuxer,
-                            bufferInfo = bufferInfo
+                                extractor = extractor,
+                                mediaMuxer = mediaMuxer,
+                                bufferInfo = bufferInfo
                         )
                     }
                 }
@@ -470,8 +471,8 @@ object Compressor {
     }
 
     private fun getBitrate(
-        bitrate: Int,
-        quality: VideoQuality,
+            bitrate: Int,
+            quality: VideoQuality,
     ): Int {
 
         return when (quality) {
@@ -484,9 +485,9 @@ object Compressor {
     }
 
     private fun generateWidthAndHeight(
-        width: Double,
-        height: Double,
-        keepOriginalResolution: Boolean,
+            width: Double,
+            height: Double,
+            keepOriginalResolution: Boolean,
     ): Pair<Int, Int> {
 
         if (keepOriginalResolution) {
@@ -526,11 +527,11 @@ object Compressor {
     private fun roundEven(value: Int): Int = value + 1 and 1.inv()
 
     private fun generateWidthHeightValue(value: Double, factor: Double): Int =
-        roundEven((((value * factor) / 16).roundToInt() * 16))
+            roundEven((((value * factor) / 16).roundToInt() * 16))
 
     private fun setUpMP4Movie(
-        rotation: Int,
-        cacheFile: File,
+            rotation: Int,
+            cacheFile: File,
     ): Mp4Movie {
         val movie = Mp4Movie()
         movie.apply {
@@ -540,18 +541,19 @@ object Compressor {
 
         return movie
     }
+
     @Suppress("SameParameterValue")
     private fun setOutputFileParameters(
-        inputFormat: MediaFormat,
-        outputFormat: MediaFormat,
-        newBitrate: Int,
+            inputFormat: MediaFormat,
+            outputFormat: MediaFormat,
+            newBitrate: Int,
     ) {
         val frameRate = getFrameRate(inputFormat)
         val iFrameInterval = getIFrameIntervalRate(inputFormat)
         outputFormat.apply {
             setInteger(
-                MediaFormat.KEY_COLOR_FORMAT,
-                MediaCodecInfo.CodecCapabilities.COLOR_FormatSurface
+                    MediaFormat.KEY_COLOR_FORMAT,
+                    MediaCodecInfo.CodecCapabilities.COLOR_FormatSurface
             )
 
             setInteger(MediaFormat.KEY_FRAME_RATE, frameRate)
@@ -584,8 +586,8 @@ object Compressor {
     }
 
     private fun selectTrack(
-        extractor: MediaExtractor,
-        isVideo: Boolean,
+            extractor: MediaExtractor,
+            isVideo: Boolean,
     ): Int {
         val numTracks = extractor.trackCount
         for (i in 0 until numTracks) {
@@ -601,9 +603,9 @@ object Compressor {
     }
 
     private fun processAudio(
-        extractor: MediaExtractor,
-        mediaMuxer: MP4Builder,
-        bufferInfo: MediaCodec.BufferInfo,
+            extractor: MediaExtractor,
+            mediaMuxer: MP4Builder,
+            bufferInfo: MediaCodec.BufferInfo,
     ) {
         val audioIndex = selectTrack(extractor, isVideo = false)
         if (audioIndex >= 0) {
@@ -649,7 +651,7 @@ object Compressor {
 
     private fun getIFrameIntervalRate(format: MediaFormat): Int {
         return if (format.containsKey(MediaFormat.KEY_I_FRAME_INTERVAL)) format.getInteger(
-            MediaFormat.KEY_I_FRAME_INTERVAL
+                MediaFormat.KEY_I_FRAME_INTERVAL
         )
         else I_FRAME_INTERVAL
     }
@@ -657,14 +659,14 @@ object Compressor {
     @RequiresApi(Build.VERSION_CODES.M)
     private fun getLevel(format: MediaFormat): Int? {
         return if (format.containsKey(MediaFormat.KEY_LEVEL)) format.getInteger(
-            MediaFormat.KEY_LEVEL
+                MediaFormat.KEY_LEVEL
         )
         else null
     }
 
     private fun getProfile(format: MediaFormat): Int? {
         return if (format.containsKey(MediaFormat.KEY_PROFILE)) format.getInteger(
-            MediaFormat.KEY_PROFILE
+                MediaFormat.KEY_PROFILE
         )
         else null
     }
@@ -672,7 +674,7 @@ object Compressor {
     @RequiresApi(Build.VERSION_CODES.N)
     private fun getColorStandard(format: MediaFormat): Int? {
         return if (format.containsKey(MediaFormat.KEY_COLOR_STANDARD)) format.getInteger(
-            MediaFormat.KEY_COLOR_STANDARD
+                MediaFormat.KEY_COLOR_STANDARD
         )
         else null
     }
@@ -680,7 +682,7 @@ object Compressor {
     @RequiresApi(Build.VERSION_CODES.N)
     private fun getColorTransfer(format: MediaFormat): Int? {
         return if (format.containsKey(MediaFormat.KEY_COLOR_TRANSFER)) format.getInteger(
-            MediaFormat.KEY_COLOR_TRANSFER
+                MediaFormat.KEY_COLOR_TRANSFER
         )
         else null
     }
@@ -688,7 +690,7 @@ object Compressor {
     @RequiresApi(Build.VERSION_CODES.N)
     private fun getColorRange(format: MediaFormat): Int? {
         return if (format.containsKey(MediaFormat.KEY_COLOR_RANGE)) format.getInteger(
-            MediaFormat.KEY_COLOR_RANGE
+                MediaFormat.KEY_COLOR_RANGE
         )
         else null
     }
